@@ -399,8 +399,10 @@ document.addEventListener('DOMContentLoaded', () => {
   navBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       const targetId = btn.getAttribute('data-target');
+      if (!targetId) return;
       const currentActive = document.querySelector('.section.visible');
       const nextSection = document.getElementById(`section-${targetId}`);
+      if (!nextSection) return;
 
       if (currentActive === nextSection) return;
       activeDashboardTab = targetId;
