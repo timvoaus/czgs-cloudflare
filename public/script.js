@@ -186,9 +186,28 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function verifyAuthAndInit() {
+    const credentials = localStorage.getItem('czgs_credentials');
     const isAuthed = await checkConnection();
     if (isAuthed) {
       hideLoginOverlay();
+
+      // Check if auth is disabled on the server (succeeded without credentials)
+      const authIndicator = document.getElementById('auth-status-indicator');
+      const logoutBtn = document.getElementById('nav-logout');
+      if (!credentials) {
+        if (authIndicator) {
+          authIndicator.textContent = 'Public (Unsecured)';
+          authIndicator.style.color = 'var(--danger)';
+        }
+        if (logoutBtn) logoutBtn.style.display = 'none';
+      } else {
+        if (authIndicator) {
+          authIndicator.textContent = 'Protected';
+          authIndicator.style.color = '';
+        }
+        if (logoutBtn) logoutBtn.style.display = '';
+      }
+
       if (trafficMapDashboard && !window.trafficMapInitialLoaded) {
         trafficMapDashboard.load();
         window.trafficMapInitialLoaded = true;
