@@ -56,9 +56,12 @@ function checkAuthentication(request, env) {
   const authDisabled = env.DASHBOARD_AUTH_DISABLED === '1';
   if (authDisabled) return true;
 
-  // Default password to 'admin' if not set in environment variables to ensure dashboard is always secured
-  const password = env.DASHBOARD_PASSWORD || 'admin';
-  const expectedUser = env.DASHBOARD_USERNAME || 'admin';
+  // Sanitize by removing BOM characters and trailing/leading whitespaces/newlines/carriage returns
+  // Defensively check for keys with trailing spaces (e.g. 'DASHBOARD_PASSWORD ') due to CLI/shell input mismatches
+  const rawPassword = env.DASHBOARD_PASSWORD || env['DASHBOARD_PASSWORD '] || 'admin';
+  const rawUser = env.DASHBOARD_USERNAME || env['DASHBOARD_USERNAME '] || 'admin';
+  const password = String(rawPassword).replace(/^\uFEFF/, '').trim();
+  const expectedUser = String(rawUser).replace(/^\uFEFF/, '').trim();
 
   const authHeader = request.headers.get('Authorization');
   if (!authHeader || !authHeader.startsWith('Basic ')) {
@@ -66,8 +69,14 @@ function checkAuthentication(request, env) {
   }
 
   try {
-    const credentials = atob(authHeader.split(' ')[1]);
-    const [user, pass] = credentials.split(':');
+    const base64Part = authHeader.split(' ')[1];
+    const credentials = atob(base64Part);
+    const separatorIndex = credentials.indexOf(':');
+    if (separatorIndex === -1) return false;
+    
+    const user = credentials.substring(0, separatorIndex).trim();
+    const pass = credentials.substring(separatorIndex + 1);
+    
     return user === expectedUser && pass === password;
   } catch {
     return false;
