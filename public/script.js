@@ -194,27 +194,31 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    // Optimistically show the dashboard and hide login overlay to avoid flickering/flash
+    hideLoginOverlay();
+
+    const authIndicator = document.getElementById('auth-status-indicator');
+    const logoutBtn = document.getElementById('nav-logout');
+    if (authIndicator) {
+      authIndicator.textContent = 'Protected';
+      authIndicator.style.color = '';
+    }
+    if (logoutBtn) logoutBtn.style.display = '';
+
+    // Initialize/load dashboard components immediately in parallel
+    if (trafficMapDashboard && !window.trafficMapInitialLoaded) {
+      trafficMapDashboard.load();
+      window.trafficMapInitialLoaded = true;
+    }
+    if (document.getElementById('section-dns-analytics')?.classList.contains('active') && !dnsChart) {
+      initDNSChart();
+      loadDNSAnalytics();
+    }
+
+    // Verify authentication in the background
     const isAuthed = await checkConnection();
-    if (isAuthed) {
-      hideLoginOverlay();
-
-      const authIndicator = document.getElementById('auth-status-indicator');
-      const logoutBtn = document.getElementById('nav-logout');
-      if (authIndicator) {
-        authIndicator.textContent = 'Protected';
-        authIndicator.style.color = '';
-      }
-      if (logoutBtn) logoutBtn.style.display = '';
-
-      if (trafficMapDashboard && !window.trafficMapInitialLoaded) {
-        trafficMapDashboard.load();
-        window.trafficMapInitialLoaded = true;
-      }
-      if (document.getElementById('section-dns-analytics')?.classList.contains('active') && !dnsChart) {
-        initDNSChart();
-        loadDNSAnalytics();
-      }
-    } else {
+    if (!isAuthed) {
+      localStorage.removeItem('czgs_credentials');
       showLoginOverlay();
     }
   }
