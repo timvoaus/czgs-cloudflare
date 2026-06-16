@@ -71,7 +71,7 @@ npx wrangler secret put CLOUDFLARE_ACCOUNT_ID
 ```
 
 ### Step 4: Run the Initial Synchronization
-Once these are saved, you can open your worker dashboard, refresh the page, and click **Run Update** to sync your gateway scripts! Click the refresh button to load analytics and traffic maps.
+Once these are saved, you can open your worker dashboard or refresh the page. Click Refresh button to load Analytic and traffic map and click **Run Update** to sync your gateway scripts!
 1. Open your deployed dashboard URL in your browser: `https://czgs-dashboard.<your-subdomain>.workers.dev`.
 2. Refresh/reload the page to ensure the configuration status updates.
 3. Navigate to the **Quick Update** tab and click the **Run Update** button to trigger the initial list download and synchronization.
