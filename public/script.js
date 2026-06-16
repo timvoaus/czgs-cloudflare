@@ -187,26 +187,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function verifyAuthAndInit() {
     const credentials = localStorage.getItem('czgs_credentials');
+    
+    // If no credentials, show login screen immediately without API check
+    if (!credentials) {
+      showLoginOverlay();
+      return;
+    }
+
     const isAuthed = await checkConnection();
     if (isAuthed) {
       hideLoginOverlay();
 
-      // Check if auth is disabled on the server (succeeded without credentials)
       const authIndicator = document.getElementById('auth-status-indicator');
       const logoutBtn = document.getElementById('nav-logout');
-      if (!credentials) {
-        if (authIndicator) {
-          authIndicator.textContent = 'Public (Unsecured)';
-          authIndicator.style.color = 'var(--danger)';
-        }
-        if (logoutBtn) logoutBtn.style.display = 'none';
-      } else {
-        if (authIndicator) {
-          authIndicator.textContent = 'Protected';
-          authIndicator.style.color = '';
-        }
-        if (logoutBtn) logoutBtn.style.display = '';
+      if (authIndicator) {
+        authIndicator.textContent = 'Protected';
+        authIndicator.style.color = '';
       }
+      if (logoutBtn) logoutBtn.style.display = '';
 
       if (trafficMapDashboard && !window.trafficMapInitialLoaded) {
         trafficMapDashboard.load();
@@ -221,16 +219,48 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // Password Visibility Toggle
+  const passwordToggle = document.getElementById('login-password-toggle');
+  if (passwordToggle) {
+    passwordToggle.addEventListener('click', () => {
+      const passwordInput = document.getElementById('login-password');
+      const eyeShow = passwordToggle.querySelector('.eye-show');
+      const eyeHide = passwordToggle.querySelector('.eye-hide');
+      if (passwordInput && eyeShow && eyeHide) {
+        if (passwordInput.type === 'password') {
+          passwordInput.type = 'text';
+          eyeShow.style.display = 'none';
+          eyeHide.style.display = 'block';
+        } else {
+          passwordInput.type = 'password';
+          eyeShow.style.display = 'block';
+          eyeHide.style.display = 'none';
+        }
+      }
+    });
+  }
+
   if (loginForm) {
     loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const usernameInput = document.getElementById('login-username');
       const passwordInput = document.getElementById('login-password');
+      const submitBtn = document.getElementById('login-submit-btn');
+      const btnText = submitBtn ? submitBtn.querySelector('.btn-text') : null;
+      const btnSpinner = submitBtn ? submitBtn.querySelector('.btn-spinner') : null;
       if (!usernameInput || !passwordInput) return;
 
       const username = usernameInput.value.trim();
       const password = passwordInput.value;
       const credentials = btoa(`${username}:${password}`);
+
+      // UI Loading State
+      if (submitBtn) submitBtn.disabled = true;
+      if (btnText) btnText.textContent = 'Unlocking...';
+      if (btnSpinner) btnSpinner.style.display = 'block';
+      usernameInput.disabled = true;
+      passwordInput.disabled = true;
+      if (loginError) loginError.style.display = 'none';
 
       try {
         const res = await fetch('/api/health', {
@@ -241,12 +271,26 @@ document.addEventListener('DOMContentLoaded', () => {
           hideLoginOverlay();
           window.location.reload();
         } else {
+          // Reset UI
+          if (submitBtn) submitBtn.disabled = false;
+          if (btnText) btnText.textContent = 'Unlock Dashboard';
+          if (btnSpinner) btnSpinner.style.display = 'none';
+          usernameInput.disabled = false;
+          passwordInput.disabled = false;
+
           if (loginError) {
             loginError.textContent = 'Invalid username or password.';
             loginError.style.display = 'block';
           }
         }
       } catch (err) {
+        // Reset UI
+        if (submitBtn) submitBtn.disabled = false;
+        if (btnText) btnText.textContent = 'Unlock Dashboard';
+        if (btnSpinner) btnSpinner.style.display = 'none';
+        usernameInput.disabled = false;
+        passwordInput.disabled = false;
+
         if (loginError) {
           loginError.textContent = 'Connection error: ' + err.message;
           loginError.style.display = 'block';

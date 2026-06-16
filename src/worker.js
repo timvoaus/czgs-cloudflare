@@ -56,12 +56,9 @@ function checkAuthentication(request, env) {
   const authDisabled = env.DASHBOARD_AUTH_DISABLED === '1';
   if (authDisabled) return true;
 
-  const password = env.DASHBOARD_PASSWORD;
-  if (!password) {
-    // If no password configured, permit local/localhost connection or simply log warning
-    // In Workers environment, we default to requiring password if set, else allow
-    return true;
-  }
+  // Default password to 'admin' if not set in environment variables to ensure dashboard is always secured
+  const password = env.DASHBOARD_PASSWORD || 'admin';
+  const expectedUser = env.DASHBOARD_USERNAME || 'admin';
 
   const authHeader = request.headers.get('Authorization');
   if (!authHeader || !authHeader.startsWith('Basic ')) {
@@ -71,7 +68,6 @@ function checkAuthentication(request, env) {
   try {
     const credentials = atob(authHeader.split(' ')[1]);
     const [user, pass] = credentials.split(':');
-    const expectedUser = env.DASHBOARD_USERNAME || 'admin';
     return user === expectedUser && pass === password;
   } catch {
     return false;
