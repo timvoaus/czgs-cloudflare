@@ -1,0 +1,14 @@
+{
+  "name": "czgs-cloudflare",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "pages:deploy": "wrangler pages deploy ./public"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "wrangler": "^3.57.1"
+  }
+}

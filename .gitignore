@@ -1,0 +1,10 @@
+# Cloudflare Wrangler files
+.wrangler/
+.dev.vars
+
+# Local dependencies
+node_modules/
+package-lock.json
+
+# Log files
+*.log

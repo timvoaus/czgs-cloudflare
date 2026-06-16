@@ -1,0 +1,31 @@
+{
+  "name": "czgs-dashboard",
+  "main": "src/worker.js",
+  "compatibility_date": "2024-06-01",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "czgs-db",
+      "database_id": "f87445d4-e4d8-43e5-ac5b-10e42b2ef94d"
+    }
+  ],
+  "vars": {
+    "DASHBOARD_USERNAME": "admin",
+    "LIST_ITEM_LIMIT": "300000",
+    "GATEWAY_PATCH_CHUNK_SIZE": "500",
+    "CZGS_API_CONCURRENCY": "3",
+    "CZGS_DOWNLOAD_CONCURRENCY": "3",
+    "CZGS_SKIP_SYNC_IF_UNCHANGED": "1"
+  },
+  "assets": {
+    "directory": "./public"
+  },
+  "triggers": {
+    "crons": [
+      "*/15 * * * *"
+    ]
+  }
+}
