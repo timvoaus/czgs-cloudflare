@@ -51,21 +51,17 @@ The Worker needs credentials to authenticate against your Cloudflare account and
    - Copy the generated API Token (keep it secure!).
 
 ### Step 3: Provide Credentials to the Worker
-You must configure the Account ID and API Token as secrets on the deployed Worker so it can call Cloudflare APIs.
+You can add them directly via the Cloudflare Web Dashboard as secure secrets:
+1. In your [Cloudflare Dashboard](https://dash.cloudflare.com/), go to **Workers & Pages** -> select the deployed **`czgs-dashboard`** worker.
+2. Navigate to the **Settings** tab at the top.
+3. Click **Variables** in the left sidebar.
+4. Under **Environment Variables**, click **Add variable**.
+5. Input the following two fields:
+   - **Name**: `CLOUDFLARE_ACCOUNT_ID` | **Value**: *(Paste your Account ID)*
+   - **Name**: `CLOUDFLARE_API_TOKEN` | **Value**: *(Paste your API Token)* -> **Make sure to click "Encrypt"** on this row to securely encrypt it as a secret!
+6. Click **Save and deploy**.
 
-#### Option A: Via the Cloudflare Web Dashboard (Recommended)
-1. Go to your [Cloudflare Dashboard](https://dash.cloudflare.com/).
-2. Navigate to **Workers & Pages** -> Select your **`czgs-dashboard`** worker.
-3. Click on the **Settings** tab.
-4. Click **Variables** in the left sidebar.
-5. In the **Environment Variables** section, click **Add**.
-6. Add the following variables:
-   - **Name**: `CLOUDFLARE_ACCOUNT_ID` | **Value**: `<Your Account ID>`
-   - **Name**: `CLOUDFLARE_API_TOKEN` | **Value**: `<Your API Token>` | Check **Encrypt** (to store it securely as a secret).
-7. Click **Save and Deploy**.
-
-#### Option B: Via command line (Wrangler CLI)
-Open a terminal in your cloned project folder and run:
+*Alternatively, you can set them via command line (Wrangler CLI):*
 ```bash
 npx wrangler secret put CLOUDFLARE_API_TOKEN
 # (Paste your API Token when prompted)
@@ -75,7 +71,7 @@ npx wrangler secret put CLOUDFLARE_ACCOUNT_ID
 ```
 
 ### Step 4: Run the Initial Synchronization
-After you have configured the database schema and the worker secrets:
+Once these are saved, you can open your worker dashboard, refresh the page, and click **Run Update** to sync your gateway scripts!
 1. Open your deployed dashboard URL in your browser: `https://czgs-dashboard.<your-subdomain>.workers.dev`.
 2. Refresh/reload the page to ensure the configuration status updates.
 3. Navigate to the **Quick Update** tab and click the **Run Update** button to trigger the initial list download and synchronization.
