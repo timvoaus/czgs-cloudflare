@@ -20,11 +20,48 @@
   <script src="https://cdn.jsdelivr.net/npm/topojson-client@3"></script>
   <script>
     (function() {
-      if (localStorage.getItem('czgs_credentials')) {
+      // 1. Prevent layout flashing if logged in
+      const credentials = localStorage.getItem('czgs_credentials');
+      if (credentials) {
         const style = document.createElement('style');
         style.textContent = '.app-container { display: flex !important; } .login-container { display: none !important; }';
         document.head.appendChild(style);
       }
+      
+      // 2. Intercept fetch globally to inject Basic Auth credentials automatically
+      const originalFetch = window.fetch;
+      window.fetch = async function(resource, init) {
+        const creds = localStorage.getItem('czgs_credentials');
+        const url = typeof resource === 'string' ? resource : (resource.url || '');
+        const isApiOrRelative = !url.startsWith('http://') && !url.startsWith('https://') || url.startsWith(window.location.origin);
+        
+        let modInit = init || {};
+        if (creds && isApiOrRelative) {
+          let headers = modInit.headers || {};
+          if (headers instanceof Headers) {
+            if (!headers.has('Authorization')) {
+              headers.set('Authorization', 'Basic ' + creds);
+            }
+          } else if (Array.isArray(headers)) {
+            const hasAuth = headers.some(h => h[0].toLowerCase() === 'authorization');
+            if (!hasAuth) {
+              headers.push(['Authorization', 'Basic ' + creds]);
+            }
+          } else {
+            if (!headers['Authorization'] && !headers['authorization']) {
+              headers['Authorization'] = 'Basic ' + creds;
+            }
+          }
+          modInit.headers = headers;
+        }
+        
+        const response = await originalFetch(resource, modInit);
+        if (response.status === 401 && isApiOrRelative && !url.includes('/api/health')) {
+          localStorage.removeItem('czgs_credentials');
+          window.location.reload();
+        }
+        return response;
+      };
     })();
   </script>
 </head>
@@ -762,7 +799,7 @@
     </div>
   </div>
 
-  <script src="traffic-map.js?v=22"></script>
-  <script type="module" src="script.js?v=59"></script>
+  <script src="traffic-map.js?v=23"></script>
+  <script type="module" src="script.js?v=60"></script>
 </body>
 </html>

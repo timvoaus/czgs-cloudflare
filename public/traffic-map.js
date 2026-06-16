@@ -634,7 +634,24 @@
         const url = isRefresh
           ? `/api/traffic-map?range=${range}&refresh=true`
           : `/api/traffic-map?range=${range}`;
-        const res = await fetch(url).then(r => r.json());
+
+        const headers = {};
+        const credentials = localStorage.getItem('czgs_credentials');
+        if (credentials) {
+          headers['Authorization'] = `Basic ${credentials}`;
+        }
+
+        const response = await fetch(url, { headers });
+        if (response.status === 401) {
+          localStorage.removeItem('czgs_credentials');
+          window.location.reload();
+          return;
+        }
+        if (!response.ok) {
+          const text = await response.text();
+          throw new Error(text || `HTTP ${response.status}`);
+        }
+        const res = await response.json();
         if (!res.success) {
           setLoading(false);
           showError(res.error || 'Failed to load traffic map');
