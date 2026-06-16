@@ -13,7 +13,6 @@
     }
   ],
   "vars": {
-    "DASHBOARD_USERNAME": "admin",
     "LIST_ITEM_LIMIT": "300000",
     "GATEWAY_PATCH_CHUNK_SIZE": "500",
     "CZGS_API_CONCURRENCY": "3",

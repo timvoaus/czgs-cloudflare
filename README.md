@@ -50,24 +50,34 @@ The Worker needs credentials to authenticate against your Cloudflare account and
    - Click **Continue to summary** -> **Create Token**.
    - Copy the generated API Token (keep it secure!).
 
-### Step 3: Provide Credentials to the Worker
+### Step 3: Provide Credentials and Setup Admin Secrets
+The dashboard is secured by a custom admin login screen. You must define the credentials as secure, encrypted secrets on your Cloudflare Worker.
+
 You can add them directly via the Cloudflare Web Dashboard as secure secrets:
 1. In your [Cloudflare Dashboard](https://dash.cloudflare.com/), go to **Workers & Pages** -> select the deployed **`czgs-dashboard`** worker.
 2. Navigate to the **Settings** tab at the top.
 3. Click **Variables** in the left sidebar.
 4. Under **Environment Variables**, click **Add variable**.
-5. Input the following two fields:
+5. Input the following four fields:
    - **Name**: `CLOUDFLARE_ACCOUNT_ID` | **Value**: *(Paste your Account ID)*
-   - **Name**: `CLOUDFLARE_API_TOKEN` | **Value**: *(Paste your API Token)* -> **Make sure to click "Encrypt"** on this row to securely encrypt it as a secret!
+   - **Name**: `CLOUDFLARE_API_TOKEN` | **Value**: *(Paste your API Token)* -> **Make sure to click "Encrypt"** to securely encrypt it as a secret!
+   - **Name**: `DASHBOARD_USERNAME` | **Value**: *(Choose an admin username, e.g. `admin`)*
+   - **Name**: `DASHBOARD_PASSWORD` | **Value**: *(Choose a strong administrative password)* -> **Make sure to click "Encrypt"** to securely encrypt it as a secret!
 6. Click **Save and deploy**.
 
-*Alternatively, you can set them via command line (Wrangler CLI):*
+*Alternatively, you can set them via the command line (Wrangler CLI):*
 ```bash
 npx wrangler secret put CLOUDFLARE_API_TOKEN
 # (Paste your API Token when prompted)
 
 npx wrangler secret put CLOUDFLARE_ACCOUNT_ID
 # (Paste your Account ID when prompted)
+
+npx wrangler secret put DASHBOARD_USERNAME
+# (Paste your desired admin username when prompted, e.g. admin)
+
+npx wrangler secret put DASHBOARD_PASSWORD
+# (Paste your desired admin password when prompted)
 ```
 
 ### Step 4: Run the Initial Synchronization

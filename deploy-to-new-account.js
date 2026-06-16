@@ -45,12 +45,19 @@ async function main() {
     execSync('npx wrangler login', { stdio: 'inherit' });
     console.log('✅ Wrangler logged in successfully.\n');
 
-    // 2. Ask for Cloudflare Token and Account ID
+    // 2. Ask for Cloudflare credentials and dashboard admin setup
     const apiToken = (await question('Enter CLOUDFLARE_API_TOKEN: ')).trim();
     const accountId = (await question('Enter CLOUDFLARE_ACCOUNT_ID: ')).trim();
+    const dashboardUsername = (await question('Enter DASHBOARD_USERNAME (default: admin): ')).trim() || 'admin';
+    const dashboardPassword = (await question('Enter DASHBOARD_PASSWORD (required to secure dashboard): ')).trim();
 
     if (!apiToken || !accountId) {
       console.error('\n❌ Both API Token and Account ID are required to configure the worker.');
+      process.exit(1);
+    }
+
+    if (!dashboardPassword) {
+      console.error('\n❌ DASHBOARD_PASSWORD is required to secure the web dashboard.');
       process.exit(1);
     }
 
@@ -126,6 +133,8 @@ async function main() {
     console.log('\nSetting secrets on the worker...');
     putSecret('CLOUDFLARE_API_TOKEN', apiToken);
     putSecret('CLOUDFLARE_ACCOUNT_ID', accountId);
+    putSecret('DASHBOARD_USERNAME', dashboardUsername);
+    putSecret('DASHBOARD_PASSWORD', dashboardPassword);
     console.log('✅ Secrets configured.');
 
     // 7. Deploy

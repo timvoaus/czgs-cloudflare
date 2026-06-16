@@ -34,11 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const terminalHost = document.getElementById('terminal');
   const trafficMapDashboard = window.createTrafficMapDashboard?.();
 
-  // Preload traffic map in the background
-  if (trafficMapDashboard) {
-    trafficMapDashboard.load();
-    window.trafficMapInitialLoaded = true;
-  }
+  // Preload traffic map is deferred until after auth verification in verifyAuthAndInit
 
   // Terminal Setup
   const term = createTerminal(terminalHost);
@@ -135,26 +131,118 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Connection Status indicator (using polling health check instead of websockets)
   const statusIndicator = document.getElementById('connection-status');
+  const loginContainer = document.getElementById('login-container');
+  const loginForm = document.getElementById('login-form');
+  const loginError = document.getElementById('login-error');
+  const appContainer = document.querySelector('.app-container');
+
+  function showLoginOverlay(isError = false) {
+    if (loginContainer) loginContainer.style.display = 'flex';
+    if (appContainer) appContainer.style.display = 'none';
+    if (isError && loginError) {
+      loginError.textContent = 'Invalid username or password.';
+      loginError.style.display = 'block';
+    } else if (loginError) {
+      loginError.style.display = 'none';
+    }
+  }
+
+  function hideLoginOverlay() {
+    if (loginContainer) loginContainer.style.display = 'none';
+    if (appContainer) appContainer.style.display = 'flex';
+  }
+
   async function checkConnection() {
     try {
-      const res = await fetch('/api/health');
-      if (res.ok) {
+      const headers = {};
+      const credentials = localStorage.getItem('czgs_credentials');
+      if (credentials) {
+        headers['Authorization'] = `Basic ${credentials}`;
+      }
+      const res = await fetch('/api/health', { headers });
+      if (res.status === 401) {
+        statusIndicator.textContent = 'Unauthorized';
+        statusIndicator.classList.remove('connected');
+        statusIndicator.style.color = 'var(--danger)';
+        showLoginOverlay();
+        return false;
+      } else if (res.ok) {
         statusIndicator.textContent = 'Connected';
         statusIndicator.classList.add('connected');
         statusIndicator.style.color = '';
+        return true;
       } else {
         statusIndicator.textContent = 'Connection Error';
         statusIndicator.classList.remove('connected');
         statusIndicator.style.color = 'var(--danger)';
+        return false;
       }
     } catch (err) {
       statusIndicator.textContent = 'Disconnected';
       statusIndicator.classList.remove('connected');
       statusIndicator.style.color = 'var(--danger)';
+      return false;
     }
   }
-  checkConnection();
-  setInterval(checkConnection, 15000); // Check health every 15 seconds
+
+  async function verifyAuthAndInit() {
+    const isAuthed = await checkConnection();
+    if (isAuthed) {
+      hideLoginOverlay();
+      if (trafficMapDashboard && !window.trafficMapInitialLoaded) {
+        trafficMapDashboard.load();
+        window.trafficMapInitialLoaded = true;
+      }
+      if (document.getElementById('section-dns-analytics')?.classList.contains('active') && !dnsChart) {
+        initDNSChart();
+        loadDNSAnalytics();
+      }
+    } else {
+      showLoginOverlay();
+    }
+  }
+
+  if (loginForm) {
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const usernameInput = document.getElementById('login-username');
+      const passwordInput = document.getElementById('login-password');
+      if (!usernameInput || !passwordInput) return;
+
+      const username = usernameInput.value.trim();
+      const password = passwordInput.value;
+      const credentials = btoa(`${username}:${password}`);
+
+      try {
+        const res = await fetch('/api/health', {
+          headers: { 'Authorization': `Basic ${credentials}` }
+        });
+        if (res.ok) {
+          localStorage.setItem('czgs_credentials', credentials);
+          hideLoginOverlay();
+          window.location.reload();
+        } else {
+          if (loginError) {
+            loginError.textContent = 'Invalid username or password.';
+            loginError.style.display = 'block';
+          }
+        }
+      } catch (err) {
+        if (loginError) {
+          loginError.textContent = 'Connection error: ' + err.message;
+          loginError.style.display = 'block';
+        }
+      }
+    });
+  }
+
+  const logoutBtn = document.getElementById('nav-logout');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+      localStorage.removeItem('czgs_credentials');
+      window.location.reload();
+    });
+  }
 
   // REST API Client helper
   async function fetchApi(url, options = {}) {
@@ -162,12 +250,17 @@ document.addEventListener('DOMContentLoaded', () => {
       'Content-Type': 'application/json',
       ...options.headers
     };
+    const credentials = localStorage.getItem('czgs_credentials');
+    if (credentials) {
+      headers['Authorization'] = `Basic ${credentials}`;
+    }
     const response = await fetch(url, {
       ...options,
       headers
     });
     if (response.status === 401) {
-      alert('Unauthorized. Please reload and log in.');
+      localStorage.removeItem('czgs_credentials');
+      showLoginOverlay();
       throw new Error('Unauthorized');
     }
     if (!response.ok) {
@@ -1742,11 +1835,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Chart is initialized and loaded on navigation click and initial load.
 
-  // Auto-load analytics on initial page load (DNS Analytics is default section)
-  if (document.getElementById('section-dns-analytics')?.classList.contains('active') && !dnsChart) {
-    initDNSChart();
-    loadDNSAnalytics();
-  }
+  // Defer analytics loading until after verifyAuthAndInit runs
+  verifyAuthAndInit();
 
   if (btnRefreshAnalytics) {
     btnRefreshAnalytics.addEventListener('click', async () => {

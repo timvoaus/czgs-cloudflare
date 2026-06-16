@@ -121,7 +121,6 @@ export default {
       return new Response('Unauthorized', {
         status: 401,
         headers: {
-          'WWW-Authenticate': 'Basic realm="CZGS Dashboard"',
           'Access-Control-Allow-Origin': '*',
         },
       });

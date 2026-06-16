@@ -114,6 +114,14 @@
           </svg>
           <span>Full Reset</span>
         </button>
+        <button id="nav-logout" class="nav-btn footer-action btn-logout" title="Sign out of the dashboard">
+          <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+          <span>Log Out</span>
+        </button>
       </div>
     </aside>
 
@@ -669,6 +677,32 @@
         <div id="terminal"></div>
       </div>
     </main>
+  </div>
+
+  <div id="login-container" class="login-container" style="display: none;">
+    <div class="login-card">
+      <div class="login-header">
+        <div class="brand-mark" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path>
+          </svg>
+        </div>
+        <h2>Unlock CZGS Dashboard</h2>
+        <p>Enter administrative credentials to proceed</p>
+      </div>
+      <form id="login-form" class="login-form">
+        <div class="form-group">
+          <label for="login-username">Username</label>
+          <input type="text" id="login-username" name="username" placeholder="admin" required autocomplete="username">
+        </div>
+        <div class="form-group">
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" name="password" placeholder="••••••••" required autocomplete="current-password">
+        </div>
+        <div id="login-error" class="login-error-message" style="display: none;"></div>
+        <button type="submit" class="btn-primary btn-large login-btn">Unlock Dashboard</button>
+      </form>
+    </div>
   </div>
 
   <script src="traffic-map.js?v=22"></script>
