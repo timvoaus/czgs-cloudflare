@@ -51,17 +51,47 @@ function jsonResponse(data, status = 200, headers = {}) {
   });
 }
 
+function sanitizeSecret(value) {
+  return String(value ?? '').replace(/^\uFEFF/, '').trim();
+}
+
+async function timingSafeStringEqual(provided, expected) {
+  const encoder = new TextEncoder();
+  const [providedHash, expectedHash] = await Promise.all([
+    crypto.subtle.digest('SHA-256', encoder.encode(provided)),
+    crypto.subtle.digest('SHA-256', encoder.encode(expected)),
+  ]);
+  return crypto.subtle.timingSafeEqual(providedHash, expectedHash);
+}
+
+function validateProxyTarget(targetUrl) {
+  let url;
+  try {
+    url = new URL(targetUrl);
+  } catch {
+    return { error: 'Invalid target URL' };
+  }
+
+  if (url.protocol !== 'https:' && url.protocol !== 'http:') {
+    return { error: 'Proxy only supports HTTP and HTTPS URLs' };
+  }
+
+  if (!url.hostname || url.username || url.password) {
+    return { error: 'Invalid target URL' };
+  }
+
+  return { url };
+}
+
 // Basic Authentication helper
-function checkAuthentication(request, env) {
+async function checkAuthentication(request, env) {
   const authDisabled = env.DASHBOARD_AUTH_DISABLED === '1';
   if (authDisabled) return true;
 
   // Sanitize by removing BOM characters and trailing/leading whitespaces/newlines/carriage returns
-  // Defensively check for keys with trailing spaces (e.g. 'DASHBOARD_PASSWORD ') due to CLI/shell input mismatches
-  const rawPassword = env.DASHBOARD_PASSWORD || env['DASHBOARD_PASSWORD '] || 'admin';
-  const rawUser = env.DASHBOARD_USERNAME || env['DASHBOARD_USERNAME '] || 'admin';
-  const password = String(rawPassword).replace(/^\uFEFF/, '').trim();
-  const expectedUser = String(rawUser).replace(/^\uFEFF/, '').trim();
+  const password = sanitizeSecret(env.DASHBOARD_PASSWORD || env['DASHBOARD_PASSWORD ']);
+  const expectedUser = sanitizeSecret(env.DASHBOARD_USERNAME || env['DASHBOARD_USERNAME '] || 'admin');
+  if (!password) return false;
 
   const authHeader = request.headers.get('Authorization');
   if (!authHeader || !authHeader.startsWith('Basic ')) {
@@ -73,11 +103,15 @@ function checkAuthentication(request, env) {
     const credentials = atob(base64Part);
     const separatorIndex = credentials.indexOf(':');
     if (separatorIndex === -1) return false;
-    
+
     const user = credentials.substring(0, separatorIndex).trim();
     const pass = credentials.substring(separatorIndex + 1);
-    
-    return user === expectedUser && pass === password;
+
+    const [userMatches, passwordMatches] = await Promise.all([
+      timingSafeStringEqual(user, expectedUser),
+      timingSafeStringEqual(pass, password),
+    ]);
+    return userMatches && passwordMatches;
   } catch {
     return false;
   }
@@ -100,17 +134,38 @@ export default {
       });
     }
 
-    // CORS Proxy endpoint does not require auth (public domain fetcher)
     const urlObj = new URL(request.url);
+
+    // Authenticate all endpoints
+    if (!(await checkAuthentication(request, env))) {
+      return new Response('Unauthorized', {
+        status: 401,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+        },
+      });
+    }
+
+    // Authenticated CORS proxy for dashboard-managed list downloads
     if (urlObj.pathname === '/api/proxy') {
       const targetUrl = urlObj.searchParams.get('url');
       if (!targetUrl) {
         return jsonResponse({ error: 'Missing target URL' }, 400);
       }
+      const validation = validateProxyTarget(targetUrl);
+      if (validation.error) {
+        return jsonResponse({ error: validation.error }, 400);
+      }
       try {
-        const fetchRes = await fetch(targetUrl);
-        const text = await fetchRes.text();
-        return new Response(text, {
+        const fetchRes = await fetch(validation.url.toString(), {
+          headers: {
+            'User-Agent': 'czgs-dashboard-list-fetcher',
+            'Accept': 'text/plain, text/*, application/octet-stream, */*;q=0.8',
+          },
+        });
+        return new Response(fetchRes.body, {
+          status: fetchRes.status,
+          statusText: fetchRes.statusText,
           headers: {
             'Access-Control-Allow-Origin': '*',
             'Content-Type': fetchRes.headers.get('Content-Type') || 'text/plain',
@@ -119,16 +174,6 @@ export default {
       } catch (err) {
         return new Response(`Error fetching URL: ${err.message}`, { status: 500 });
       }
-    }
-
-    // Authenticate all other endpoints
-    if (!checkAuthentication(request, env)) {
-      return new Response('Unauthorized', {
-        status: 401,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-        },
-      });
     }
 
     // Initialize D1 Database client wrapper and modules

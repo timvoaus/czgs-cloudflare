@@ -187,7 +187,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function verifyAuthAndInit() {
     const credentials = localStorage.getItem('czgs_credentials');
-    
+
     // If no credentials, show login screen immediately without API check
     if (!credentials) {
       showLoginOverlay();
@@ -890,7 +890,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentUrlType = 'blocklist';
   const urlTextarea = document.getElementById('url-textarea');
   const urlStatus = document.getElementById('url-save-status');
-  
+
   const tabBtns = document.querySelectorAll('.tab-btn');
   tabBtns.forEach(btn => {
     btn.addEventListener('click', () => {
@@ -907,7 +907,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const res = await fetchApi('/api/settings');
       const settings = res.settings || {};
       const key = currentUrlType === 'blocklist' ? 'blocklist_urls' : 'allowlist_urls';
-      
+
       let urls = [];
       const storedUrls = settings[key];
       if (storedUrls) {
@@ -917,7 +917,7 @@ document.addEventListener('DOMContentLoaded', () => {
           urls = storedUrls.split('\n').map(u => u.trim()).filter(Boolean);
         }
       }
-      
+
       if (!urls || urls.length === 0) {
         urls = currentUrlType === 'blocklist' ? RECOMMENDED_BLOCKLIST_URLS : RECOMMENDED_ALLOWLIST_URLS;
       }
@@ -977,7 +977,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       for (const { domain, ips } of res.rewrites) {
         const li = document.createElement('li');
-        
+
         const info = document.createElement('span');
         info.textContent = `${domain} -> ${ips.join(', ')}`;
         li.appendChild(info);
@@ -991,7 +991,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
           </svg>
         `;
-        
+
         delBtn.addEventListener('click', () => {
           deleteRewrite(domain);
         });
@@ -1020,19 +1020,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const filteredLines = lines.filter(line => {
       const trimmed = line.trim();
       if (!trimmed || trimmed.startsWith('#')) return true;
-      
+
       const normalizedLine = trimmed
         .replace(/\s*->\s*/, ' ')
         .replace(/\s*=\s*/, ' ')
         .replace(/\s+/g, ' ');
       const domain = normalizedLine.split(/[,\s]+/)[0]?.trim().toLowerCase();
-      
+
       return domain !== domainToDelete.toLowerCase();
     });
 
     const newRaw = filteredLines.join('\n');
     rewritesTextarea.value = newRaw;
-    
+
     term.writeln(`\x1b[33mDeleting DNS rewrite for: ${domainToDelete}\x1b[0m`);
     rewritesStatus.textContent = 'Deleting...';
     rewritesStatus.className = 'status-msg';
@@ -1132,12 +1132,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!customListId) return alert('Allowlist not loaded yet.');
     const raw = allowlistTextarea.value;
     const domains = raw.split(/[\s,]+/).map(d => d.trim().toLowerCase()).filter(Boolean);
-    
+
     if (domains.length === 0) return alert('Please enter at least one valid domain.');
-    
+
     document.getElementById('btn-allowlist-add').disabled = true;
     document.getElementById('btn-allowlist-remove').disabled = true;
-    
+
     term.writeln(`\x1b[36m--- Allowlist ${action} ---\x1b[0m`);
 
     try {
@@ -1281,12 +1281,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!customDenyListId) return alert('Denylist not loaded yet.');
     const raw = denylistTextarea.value;
     const domains = raw.split(/[\s,]+/).map(d => d.trim().toLowerCase()).filter(Boolean);
-    
+
     if (domains.length === 0) return alert('Please enter at least one valid domain.');
-    
+
     document.getElementById('btn-denylist-add').disabled = true;
     document.getElementById('btn-denylist-remove').disabled = true;
-    
+
     term.writeln(`\x1b[36m--- Denylist ${action} ---\x1b[0m`);
 
     try {
@@ -1762,7 +1762,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!dnsDataStatus) return;
     dnsDataStatus.className = 'data-status data-timestamp';
     const formatStatusTime = value => new Date(value || Date.now()).toLocaleTimeString();
-    
+
     if (source === 'live') {
       dnsDataStatus.classList.add('live');
       dnsDataStatus.textContent = `Live ${formatStatusTime(cachedAt)}`;
@@ -1788,18 +1788,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function setDNSRange(range) {
     currentDNSRange = range;
-    
+
     // Update pill UI
     if (dnsRangePills) {
       dnsRangePills.querySelectorAll('.range-pill').forEach(pill => {
         pill.classList.toggle('active', pill.dataset.range === range);
       });
     }
-    
+
     // Update time period text
     const rangeLabels = { '24h': 'Last 24 hours', '7d': 'Last 7 days', '30d': 'Last 30 days' };
     if (analyticsTimePeriod) analyticsTimePeriod.textContent = rangeLabels[range] || 'Last 24 hours';
-    
+
     // Load data for new range
     loadDNSAnalytics(range);
   }

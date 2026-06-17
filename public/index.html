@@ -27,14 +27,14 @@
         style.textContent = '.app-container { display: flex !important; } .login-container { display: none !important; }';
         document.head.appendChild(style);
       }
-      
+
       // 2. Intercept fetch globally to inject Basic Auth credentials automatically
       const originalFetch = window.fetch;
       window.fetch = async function(resource, init) {
         const creds = localStorage.getItem('czgs_credentials');
         const url = typeof resource === 'string' ? resource : (resource.url || '');
         const isApiOrRelative = !url.startsWith('http://') && !url.startsWith('https://') || url.startsWith(window.location.origin);
-        
+
         let modInit = init || {};
         if (creds && isApiOrRelative) {
           let headers = modInit.headers || {};
@@ -54,7 +54,7 @@
           }
           modInit.headers = headers;
         }
-        
+
         const response = await originalFetch(resource, modInit);
         if (response.status === 401 && isApiOrRelative && !url.includes('/api/health')) {
           localStorage.removeItem('czgs_credentials');
@@ -728,7 +728,7 @@
   <div id="login-container" class="login-container">
     <div class="login-bg-glow login-bg-glow-1"></div>
     <div class="login-bg-glow login-bg-glow-2"></div>
-    
+
     <div class="login-card">
       <div class="login-glow-border"></div>
       <div class="login-card-content">
@@ -741,7 +741,7 @@
           <h2>Unlock CZGS Dashboard</h2>
           <p>Secure Cloudflare Zero Trust Management Console</p>
         </div>
-        
+
         <form id="login-form" class="login-form">
           <div class="form-group">
             <label for="login-username">Username</label>
@@ -755,7 +755,7 @@
               <input type="text" id="login-username" name="username" placeholder="admin" required autocomplete="username">
             </div>
           </div>
-          
+
           <div class="form-group">
             <label for="login-password">Password</label>
             <div class="input-with-icon">
@@ -778,9 +778,9 @@
               </button>
             </div>
           </div>
-          
+
           <div id="login-error" class="login-error-message" style="display: none;"></div>
-          
+
           <button type="submit" id="login-submit-btn" class="btn-primary btn-large login-btn">
             <span class="btn-text">Unlock Dashboard</span>
             <svg class="btn-spinner" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
