@@ -30,6 +30,14 @@ const RECOMMENDED_BLOCKLIST_URLS = [
   "https://adguardteam.github.io/HostlistsRegistry/assets/filter_16.txt",
 ];
 
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/service-worker.js').catch((err) => {
+      console.warn('Service worker registration failed:', err);
+    });
+  });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   const terminalHost = document.getElementById('terminal');
   const trafficMapDashboard = window.createTrafficMapDashboard?.();
