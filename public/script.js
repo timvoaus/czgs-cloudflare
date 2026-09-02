@@ -426,6 +426,91 @@ document.addEventListener('DOMContentLoaded', () => {
   const currentViewLabel = document.getElementById('current-view-label');
   let activeDashboardTab = document.querySelector('.nav-btn.active')?.dataset.target || 'dns-analytics';
 
+  // Collapse navigation when the layout can no longer keep the full sidebar on the left;
+  // wider desktop layouts retain the existing sidebar semantics and appearance.
+  const mobileNavQuery = window.matchMedia('(max-width: 1024px)');
+  const sidebar = document.querySelector('.sidebar');
+  const mobileNavPanel = document.getElementById('mobile-nav-panel');
+  const mobileNavToggle = document.querySelector('.mobile-nav-toggle');
+  const mobileNavSummary = document.querySelector('.mobile-nav-summary');
+  const mobileNavSummaryLabel = document.querySelector('.mobile-nav-summary-label');
+  const mobileNavSummaryIcon = document.querySelector('.mobile-nav-summary-icon');
+  const updateMobileNavPanelHeight = () => {
+    if (mobileNavPanel && mobileNavQuery.matches) {
+      mobileNavPanel.style.setProperty('--mobile-nav-panel-height', `${mobileNavPanel.scrollHeight}px`);
+    }
+  };
+  const setMobileNavOpen = (open, focusActive = false) => {
+    if (!sidebar || !mobileNavPanel || !mobileNavQuery.matches) return;
+    if (open) updateMobileNavPanelHeight();
+    sidebar.classList.toggle('mobile-nav-open', open);
+    mobileNavPanel.setAttribute('aria-hidden', String(!open));
+    mobileNavPanel.inert = !open;
+    [mobileNavToggle, mobileNavSummary].forEach(control => {
+      if (!control) return;
+      control.setAttribute('aria-expanded', String(open));
+      control.setAttribute('aria-label', `${open ? 'Close' : 'Open'} navigation menu`);
+    });
+    if (open && focusActive) {
+      document.querySelector('.nav-btn.active')?.focus({ preventScroll: true });
+    }
+  };
+  const updateMobileNavSummary = (button = document.querySelector('.nav-btn.active')) => {
+    if (!button) return;
+    if (mobileNavSummaryLabel) mobileNavSummaryLabel.textContent = button.dataset.label || button.textContent.trim();
+    if (mobileNavSummaryIcon) {
+      mobileNavSummaryIcon.replaceChildren();
+      const icon = button.querySelector('.nav-icon');
+      if (icon) {
+        const iconCopy = icon.cloneNode(true);
+        iconCopy.setAttribute('aria-hidden', 'true');
+        mobileNavSummaryIcon.append(iconCopy);
+      }
+    }
+  };
+  updateMobileNavSummary();
+  if (mobileNavQuery.matches) {
+    setMobileNavOpen(false);
+  } else if (mobileNavPanel) {
+    mobileNavPanel.inert = false;
+    mobileNavPanel.removeAttribute('aria-hidden');
+  }
+  const collapseMobileNavAfterSelection = () => {
+    setMobileNavOpen(false);
+    if (mobileNavQuery.matches) mobileNavSummary?.focus({ preventScroll: true });
+  };
+  mobileNavToggle?.addEventListener('click', () => setMobileNavOpen(!sidebar?.classList.contains('mobile-nav-open')));
+  mobileNavSummary?.addEventListener('click', () => {
+    const isOpen = sidebar?.classList.contains('mobile-nav-open');
+    setMobileNavOpen(!isOpen);
+    if (!isOpen) mobileNavSummary.focus({ preventScroll: true });
+  });
+  mobileNavQuery.addEventListener?.('change', event => {
+    const activeElement = document.activeElement;
+    const panelHadFocus = Boolean(mobileNavPanel?.contains(activeElement));
+    const mobileControlHadFocus = activeElement === mobileNavToggle || activeElement === mobileNavSummary;
+    if (event.matches) {
+      setMobileNavOpen(false);
+      if (panelHadFocus) mobileNavSummary?.focus({ preventScroll: true });
+    } else {
+      sidebar?.classList.remove('mobile-nav-open');
+      if (mobileNavPanel) {
+        mobileNavPanel.inert = false;
+        mobileNavPanel.removeAttribute('aria-hidden');
+      }
+      if (mobileControlHadFocus) document.querySelector('.nav-btn.active')?.focus({ preventScroll: true });
+    }
+  });
+  window.addEventListener('resize', () => {
+    if (mobileNavQuery.matches && sidebar?.classList.contains('mobile-nav-open')) updateMobileNavPanelHeight();
+  });
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && mobileNavQuery.matches && sidebar?.classList.contains('mobile-nav-open')) {
+      setMobileNavOpen(false);
+      mobileNavToggle?.focus({ preventScroll: true });
+    }
+  });
+
   const mobileLayoutQuery = window.matchMedia('(max-width: 980px)');
   const updateContentOverflow = () => {
     if (!contentSections) return;
@@ -474,18 +559,26 @@ document.addEventListener('DOMContentLoaded', () => {
   navBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       const targetId = btn.getAttribute('data-target');
-      if (!targetId) return;
+      if (!targetId) {
+        setMobileNavOpen(false);
+        return;
+      }
       const currentActive = document.querySelector('.section.visible');
       const nextSection = document.getElementById(`section-${targetId}`);
       if (!nextSection) return;
 
-      if (currentActive === nextSection) return;
       activeDashboardTab = targetId;
 
       // Update active nav immediately
       navBtns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       currentViewLabel.textContent = btn.dataset.label || btn.textContent.trim();
+      updateMobileNavSummary(btn);
+
+      if (currentActive === nextSection) {
+        collapseMobileNavAfterSelection();
+        return;
+      }
 
       // Hide current section
       if (currentActive) {
@@ -529,6 +622,7 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         });
       });
+      collapseMobileNavAfterSelection();
     });
   });
 

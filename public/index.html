@@ -16,8 +16,8 @@
   <link rel="shortcut icon" href="/favicon-centered.ico?v=9">
   <link rel="icon" type="image/png" sizes="128x128" href="/favicon-centered.png?v=9">
   <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
-  <link rel="stylesheet" href="style.css?v=21">
-  <link rel="stylesheet" href="traffic-map.css?v=22">
+  <link rel="stylesheet" href="style.css?v=22">
+  <link rel="stylesheet" href="traffic-map.css?v=23">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css">
   <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js"></script>
@@ -84,8 +84,17 @@
           <span class="brand-title">Cloudflare</span>
           <span class="brand-subtitle">Zerotrust Gateway Scripts</span>
         </div>
+        <button class="mobile-nav-toggle" type="button" aria-expanded="false" aria-controls="mobile-nav-panel" aria-label="Open navigation menu">
+          <span></span><span></span><span></span>
+        </button>
       </div>
 
+      <button class="mobile-nav-summary" type="button" aria-expanded="false" aria-controls="mobile-nav-panel" aria-label="Open navigation menu">
+        <span class="mobile-nav-summary-icon" aria-hidden="true"></span>
+        <span class="mobile-nav-summary-label">DNS Analytics</span>
+      </button>
+
+      <div id="mobile-nav-panel" class="mobile-nav-panel" aria-hidden="true" inert>
       <nav class="nav-menu">
         <button class="nav-btn active" data-target="dns-analytics" data-label="DNS Analytics">
           <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -174,6 +183,7 @@
           </svg>
           <span>Log Out</span>
         </button>
+      </div>
       </div>
     </aside>
 
@@ -806,6 +816,6 @@
   </div>
 
   <script src="traffic-map.js?v=23"></script>
-  <script type="module" src="script.js?v=61"></script>
+  <script type="module" src="script.js?v=62"></script>
 </body>
 </html>

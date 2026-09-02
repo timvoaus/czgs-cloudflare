@@ -1,4 +1,4 @@
-const CACHE_NAME = 'czgs-app-shell-v2';
+const CACHE_NAME = 'czgs-app-shell-v3';
 const RUNTIME_CACHE_NAME = 'czgs-runtime-v1';
 
 const APP_SHELL_ASSETS = [
@@ -12,9 +12,9 @@ const APP_SHELL_ASSETS = [
   '/icons/icon-maskable-192.png',
   '/icons/icon-maskable-512.png',
   '/icons/apple-touch-icon.png',
-  '/style.css?v=21',
-  '/traffic-map.css?v=22',
-  '/script.js?v=61',
+  '/style.css?v=22',
+  '/traffic-map.css?v=23',
+  '/script.js?v=62',
   '/sync-engine.js',
   '/traffic-map.js?v=23'
 ];

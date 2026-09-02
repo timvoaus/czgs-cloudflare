@@ -2191,6 +2191,187 @@ textarea:focus {
   }
 }
 
+/* Mobile navigation: intentionally last so it wins over the legacy tablet rules above. */
+.mobile-nav-panel {
+  display: contents;
+}
+
+.mobile-nav-toggle,
+.mobile-nav-summary {
+  display: none;
+}
+
+@media (max-width: 1024px) {
+  .sidebar {
+    align-items: stretch;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 8px;
+  }
+
+  .brand-lockup {
+    width: 100%;
+    align-items: center;
+    display: flex;
+    justify-content: flex-start;
+  }
+
+  .mobile-nav-toggle {
+    display: inline-flex;
+    margin-left: auto;
+    flex: 0 0 auto;
+    width: 42px;
+    height: 42px;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 4px;
+    border: 1px solid rgba(113, 150, 202, 0.32);
+    border-radius: 11px;
+    color: var(--text-main);
+    background: rgba(255, 255, 255, 0.46);
+    cursor: pointer;
+  }
+
+  .mobile-nav-toggle span {
+    display: block;
+    width: 17px;
+    height: 2px;
+    border-radius: 2px;
+    background: currentColor;
+    transition: transform 180ms ease, opacity 180ms ease;
+  }
+
+  .mobile-nav-toggle[aria-expanded="true"] span:nth-child(1) {
+    transform: translateY(6px) rotate(45deg);
+  }
+
+  .mobile-nav-toggle[aria-expanded="true"] span:nth-child(2) {
+    opacity: 0;
+  }
+
+  .mobile-nav-toggle[aria-expanded="true"] span:nth-child(3) {
+    transform: translateY(-6px) rotate(-45deg);
+  }
+
+  .mobile-nav-summary {
+    display: flex;
+    width: 100%;
+    min-height: 42px;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border: 1px solid rgba(113, 150, 202, 0.28);
+    border-radius: var(--radius-pill);
+    color: #fff;
+    background:
+      linear-gradient(145deg, rgba(255, 255, 255, 0.22), transparent 38%),
+      linear-gradient(135deg, var(--accent-hot), var(--accent) 55%, #f06411);
+    border-color: rgba(255, 255, 255, 0.26);
+    box-shadow:
+      0 0 0 1px rgba(255, 190, 118, 0.11),
+      0 0 12px rgba(246, 130, 31, 0.21),
+      0 0 24px rgba(246, 130, 31, 0.09),
+      0 8px 18px rgba(0, 0, 0, 0.24),
+      inset 0 1px 0 rgba(255, 255, 255, 0.36);
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 760;
+    justify-content: center;
+    text-align: center;
+    cursor: pointer;
+  }
+
+  .mobile-nav-summary-icon {
+    width: 22px;
+    height: 22px;
+    flex: 0 0 auto;
+    color: currentColor;
+  }
+
+  .mobile-nav-summary-icon svg {
+    display: block;
+    width: 18px;
+    height: 18px;
+    color: currentColor;
+  }
+
+  .mobile-nav-panel {
+    display: block;
+    width: 100%;
+    max-height: 0;
+    overflow: hidden;
+    transform: translateY(-8px);
+    transform-origin: top;
+    pointer-events: none;
+    transition: max-height 360ms cubic-bezier(0.22, 1, 0.36, 1),
+      transform 360ms cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: max-height, transform;
+  }
+
+  .sidebar.mobile-nav-open .mobile-nav-panel {
+    max-height: var(--mobile-nav-panel-height, 0px);
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  .mobile-nav-panel .nav-btn.active {
+    display: none;
+  }
+
+  .nav-menu,
+  .sidebar-footer {
+    width: 100%;
+  }
+
+  .nav-menu {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 6px;
+    padding: 2px;
+  }
+
+  .nav-btn {
+    width: 100%;
+    flex: 0 0 auto;
+    justify-content: center;
+    text-align: center;
+  }
+
+  /* Keep the legacy wide-label flex-basis rules from creating tall buttons. */
+  .mobile-nav-panel .nav-btn {
+    flex: 0 0 auto;
+    flex-basis: auto;
+  }
+
+  .sidebar-footer {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    padding: 8px 2px 2px;
+  }
+
+  .sidebar-footer .nav-btn {
+    width: 100%;
+  }
+
+  .mobile-nav-toggle:focus-visible,
+  .mobile-nav-summary:focus-visible,
+  .mobile-nav-panel .nav-btn:focus-visible {
+    outline: 3px solid rgba(43, 119, 208, 0.52);
+    outline-offset: 2px;
+  }
+}
+
+@media (max-width: 1024px) and (prefers-reduced-motion: reduce) {
+  .mobile-nav-toggle span,
+  .mobile-nav-panel {
+    transition: none;
+  }
+}
+
 /* Custom Login Overlay Styles */
 .login-container {
   position: fixed;
